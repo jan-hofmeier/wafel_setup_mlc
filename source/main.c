@@ -5,9 +5,10 @@
 #include <wafel/dynamic.h>
 #include <wafel/ios_dynamic.h>
 #include <wafel/utils.h>
+#include <wafel/ios/svc.h>
+#include <wafel/ios/memory.h>
+
 #include "setup.h"
-#include "ios/svc.h"
-#include "ios/memory.h"
 
 
 #define _ASM_PATCH(_addr, _str, _copy_fn) { \

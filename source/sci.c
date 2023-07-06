@@ -1,7 +1,7 @@
 #include "sci.h"
 #include <string.h>
 #include <stdint.h>
-#include "ios/svc.h"
+#include <wafel/ios/svc.h>
 
 static int _SCIReadSysConfig(const char* name, uint32_t type, uint32_t size, void* data)
 {

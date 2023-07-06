@@ -1,12 +1,12 @@
 #include <stdio.h>
 
 #include <wafel/utils.h>
+#include <wafel/services/fsa.h>
+#include <wafel/ios/thread.h>
+#include <wafel/ios/svc.h>
 
 #include "setup.h"
-#include "fsa.h"
 #include "sci.h"
-#include "ios/thread.h"
-#include "ios/svc.h"
 
 char *folders_to_create[] = { "/vol/storage_mlc01/usr", "/vol/storage_mlc01/usr/boss", "/vol/storage_mlc01/usr/save", "/vol/storage_mlc01/usr/save/00050010",
                      "/vol/storage_mlc01/usr/packages", "/vol/storage_mlc01/usr/tmp", NULL };
