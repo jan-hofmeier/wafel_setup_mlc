@@ -5,4 +5,9 @@
 
 int usleep(u32 amt);
 
+static inline int msleep(u32 amt)
+{
+    return usleep(amt*1000);
+}
+
 #endif // _THREAD_H

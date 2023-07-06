@@ -8,10 +8,10 @@
 #include "ios/thread.h"
 #include "ios/svc.h"
 
-char *folders_to_create[] = { "/vol/storage_mlc01/usr", "/vol/storage_mlc01/usr/boss", "/vol/storage_mlc01/usr/save", "/vol/storage_mlc01/usr/save/00050010",
+static const char *folders_to_create[] = { "/vol/storage_mlc01/usr", "/vol/storage_mlc01/usr/boss", "/vol/storage_mlc01/usr/save", "/vol/storage_mlc01/usr/save/00050010",
                      "/vol/storage_mlc01/usr/packages", "/vol/storage_mlc01/usr/tmp", NULL };
 
-void mount_sd(int fd, char* path)
+static void mount_sd(int fd, const char* path)
 {
     // Mount sd to /vol/sdcard
     int ret = FSA_Mount(fd, "/dev/sdcard01", path, 0, NULL, 0);;
@@ -27,7 +27,7 @@ void mount_sd(int fd, char* path)
     debug_printf("Mounted SD...\n");
 }
 
-void wait_mlc_ready(int fd){
+static void wait_mlc_ready(int fd){
     int i = 1;
     int ret;
     int dir = 0;
@@ -41,18 +41,18 @@ void wait_mlc_ready(int fd){
     debug_printf("MLC ready!\n");
 }
 
-void flush_mlc(int fd){
+static inline void flush_mlc(int fd){
     int ret = FSA_FlushVolume(fd, "/vol/storage_mlc01");
     debug_printf("Flush MLC returned %X\n", ret);
 }
 
-void flush_slc(int fd){
+static inline void flush_slc(int fd){
     int ret = FSA_FlushVolume(fd, "/vol/system");
     debug_printf("Flush SLC returned %X\n", ret);
 }
 
 
-void install_title(int mcp_handle, char *install_dir){
+static void install_title(int mcp_handle, const char *install_dir){
         int ret = MCP_InstallTarget(mcp_handle, 0);
         debug_printf("installtarget : %08x", ret);
 
@@ -60,7 +60,7 @@ void install_title(int mcp_handle, char *install_dir){
         debug_printf("install : %08x", ret);
 }
 
-void install_all_titles(int fd, char *directory){
+static void install_all_titles(int fd, const char *directory){
     int dir = 0;
     int ret = FSA_OpenDir(fd, directory, &dir);
     if(ret)

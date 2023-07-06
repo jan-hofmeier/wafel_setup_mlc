@@ -47,37 +47,37 @@ typedef struct
 #define FSA_MOUNTFLAGS_BINDMOUNT (1 << 0)
 #define FSA_MOUNTFLAGS_GLOBAL (1 << 1)
 
-int MCP_InstallGetInfo(int fd, char* path);
-int MCP_Install(int fd, char* path);
+int MCP_InstallGetInfo(int fd, const char* path);
+int MCP_Install(int fd, const char* path);
 int MCP_InstallTarget(int fd, int target);
 
 int FSA_Open();
 
-int FSA_Mount(int fd, char* device_path, char* volume_path, u32 flags, char* arg_string, int arg_string_len);
-int FSA_Unmount(int fd, char* path, u32 flags);
-int FSA_FlushVolume(int fd, char* volume);
+int FSA_Mount(int fd, const char* device_path, const char* volume_path, u32 flags, char* arg_string, int arg_string_len);
+int FSA_Unmount(int fd, const char* path, u32 flags);
+int FSA_FlushVolume(int fd, const char* volume);
 
-int FSA_GetDeviceInfo(int fd, char* device_path, int type, u32* out_data);
-int FSA_GetVolumeInfo(int fd, char* volume_path, int type, fsa_volume_info* out_data);
+int FSA_GetDeviceInfo(int fd, const char* device_path, int type, u32* out_data);
+int FSA_GetVolumeInfo(int fd, const char* volume_path, int type, fsa_volume_info* out_data);
 
-int FSA_MakeDir(int fd, char* path, u32 flags);
-int FSA_OpenDir(int fd, char* path, int* outHandle);
+int FSA_MakeDir(int fd, const char* path, u32 flags);
+int FSA_OpenDir(int fd, const char* path, int* outHandle);
 int FSA_ReadDir(int fd, int handle, directoryEntry_s* out_data);
 int FSA_CloseDir(int fd, int handle);
 
-int FSA_MakeQuota(int fd, char* path, u32 mode, u64 size);
+int FSA_MakeQuota(int fd, const char* path, u32 mode, u64 size);
 
-int FSA_OpenFile(int fd, char* path, char* mode, int* outHandle);
+int FSA_OpenFile(int fd, const char* path, const char* mode, int* outHandle);
 int FSA_ReadFile(int fd, void* data, u32 size, u32 cnt, int fileHandle, u32 flags);
 int FSA_WriteFile(int fd, void* data, u32 size, u32 cnt, int fileHandle, u32 flags);
 int FSA_StatFile(int fd, int handle, fileStat_s* out_data);
 int FSA_CloseFile(int fd, int fileHandle);
 
-int FSA_ChangeMode(int fd, char* path, int mode);
+int FSA_ChangeMode(int fd, const char* path, int mode);
 
-int FSA_Format(int fd, char* device, char* fs_format, int flags, u32 what1, u32 what2);
+int FSA_Format(int fd, const char* device, const char* fs_format, int flags, u32 what1, u32 what2);
 
-int FSA_RawOpen(int fd, char* device_path, int* outHandle);
+int FSA_RawOpen(int fd, const char* device_path, int* outHandle);
 int FSA_RawRead(int fd, void* data, u32 size_bytes, u32 cnt, u64 sector_offset, int device_handle);
 int FSA_RawWrite(int fd, void* data, u32 size_bytes, u32 cnt, u64 sector_offset, int device_handle);
 int FSA_RawClose(int fd, int device_handle);

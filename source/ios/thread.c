@@ -29,8 +29,3 @@ int usleep(u32 amt)
     }
     return ret;
 }
-
-int msleep(u32 amt)
-{
-    return usleep(amt*1000);
-}

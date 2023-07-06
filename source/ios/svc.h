@@ -44,7 +44,7 @@ LINKABLE int iosPanic(const char* msg, u32 msg_size);
 LINKABLE void* iosAlloc(u32 heapid, u32 size);
 LINKABLE void* iosAllocAligned(u32 heapid, u32 size, u32 align);
 LINKABLE void iosFree(u32 heapid, void* ptr);
-LINKABLE int iosOpen(char* name, int mode);
+LINKABLE int iosOpen(const char* name, int mode);
 LINKABLE int iosClose(int fd);
 LINKABLE int iosIoctl(int fd, u32 request, void* input_buffer, u32 input_buffer_len, void* output_buffer, u32 output_buffer_len);
 LINKABLE int iosIoctlv(int fd, u32 request, u32 vector_count_in, u32 vector_count_out, iovec_s* vector);
