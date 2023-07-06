@@ -119,7 +119,7 @@ void install_all_titles(int fd, char *directory){
 
 u32 setup_main(void* arg){
 
-    debug_printf('START MLC SETUP');
+    debug_printf("START MLC SETUP");
     int fd = -1;
     int i = 1;
     while(fd < 0)
