@@ -118,6 +118,8 @@ void install_all_titles(int fd, char *directory){
 }
 
 u32 setup_main(void* arg){
+
+    debug_printf('START MLC SETUP');
     int fd = -1;
     int i = 1;
     while(fd < 0)
@@ -149,7 +151,7 @@ u32 setup_main(void* arg){
 
     iosClose(fd);
 
-    debug_printf("FINISHED!");
+    debug_printf("MLC SETUP FINISHED!");
 
     return 0;
 }

@@ -63,10 +63,16 @@ void mcp_main()
 
     // Start up setup thread
     u8* setup_stack = (u8*)malloc_global(0x1000);
-    int setup_threadhand = iosCreateThread(setup_main, NULL, (u32*)(setup_stack+0x1000), 0x1000, 0x78, 1);
-    if (setup_threadhand >= 0) {
-        iosStartThread(setup_threadhand);
+    if (!setup_stack) {
+        debug_printf("ERROR: failed to allocate stack for setup thread\n");
+        return;
     }
+    int setup_threadhand = iosCreateThread(setup_main, NULL, (u32*)(setup_stack+0x1000), 0x1000, 0x78, 1);
+    if (setup_threadhand < 0) {
+        debug_printf("ERROR: failed to create setup thread\n");
+        return;
+    }
+    int start_ret = iosStartThread(setup_threadhand);
+    debug_printf("start setup thread returned: %X\n", start_ret);
 
-    debug_printf("done\n");
 }
