@@ -1,0 +1,3 @@
+[submodule "stroopwafel"]
+	path = stroopwafel
+	url = https://github.com/shinyquagsire23/stroopwafel.git

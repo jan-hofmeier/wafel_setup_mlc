@@ -1,8 +1,8 @@
 #ifndef SVC_H
 #define SVC_H
 
-#include "wafel/types.h"
-#include "wafel/dynamic.h"
+#include <wafel/types.h>
+#include <wafel/dynamic.h>
 
 typedef struct
 {

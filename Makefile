@@ -18,10 +18,10 @@ export TARGET		:=	wafel_setup_mlc
 export BUILD		?=	debug
 
 R_SOURCES			:=	
-SOURCES				:=	source source/ios source/services source/wupserver source/latte
+SOURCES				:=	source source/ios
 
 R_INCLUDES			:=	
-INCLUDES 			:=	source
+INCLUDES 			:=	source stroopwafel/wafel_core/include
 
 DATA				:=	
 
