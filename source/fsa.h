@@ -75,7 +75,7 @@ int FSA_CloseFile(int fd, int fileHandle);
 
 int FSA_ChangeMode(int fd, const char* path, int mode);
 
-int FSA_Format(int fd, const char* device, const char* fs_format, int flags, u32 what1, u32 what2);
+int FSA_Format(int fd, const char* device, const char* fs_format, int flags, u64 what);
 
 int FSA_RawOpen(int fd, const char* device_path, int* outHandle);
 int FSA_RawRead(int fd, void* data, u32 size_bytes, u32 cnt, u64 sector_offset, int device_handle);

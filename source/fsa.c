@@ -203,7 +203,7 @@ int FSA_MakeQuota(int fd, const char* path, u32 mode, u64 size)
 	u8* iobuf = allocIobuf();
 	u32* inbuf = (u32*)iobuf;
 	u32* outbuf = (u32*)&iobuf[0x520];
-	u64* inbuf64 = (u64*)inbuf32;
+	u64* inbuf64 = (u64*)inbuf;
 
 	strncpy((char*)&inbuf[0x01], path, 0x27F);
 	inbuf[0x284 / 4] = mode;
@@ -326,18 +326,18 @@ int FSA_ChangeMode(int fd, const char* path, int mode)
 	return ret;
 }
 
-int FSA_Format(int fd, const char* device, const char* fs_format, int flags, u32 what1, u32 what2)
+int FSA_Format(int fd, const char* device, const char* fs_format, int flags, u64 what)
 {
 	u8* iobuf = allocIobuf();
 	u8* inbuf8 = iobuf;
 	u8* outbuf8 = &iobuf[0x520];
 	u32* inbuf = (u32*)inbuf8;
 	u32* outbuf = (u32*)outbuf8;
+	u64* inbuf64 = (u64*)inbuf;
 
 	strncpy((char*)&inbuf8[0x04], device, 0x27F);
 	strncpy((char*)&inbuf8[0x284], fs_format, 8);
-	inbuf[0x28C / 4] = what1;
-	inbuf[0x290 / 4] = what2;
+	inbuf64[0x28C / 8] = what;
 
 	int ret = iosIoctl(fd, 0x69, inbuf, 0x520, outbuf, 0x293);
 
@@ -445,10 +445,10 @@ int FSA_RawRead(int fd, void* data, u32 size_bytes, u32 cnt, u64 blocks_offset, 
 	iovec_s* iovec = (iovec_s*)&iobuf[0x7C0];
 	u32* inbuf = (u32*)inbuf8;
 	u32* outbuf = (u32*)outbuf8;
-	u64* inbuf64 = (u64*)inbuf32;
+	u64* inbuf64 = (u64*)inbuf;
 
 	// note : offset_bytes = blocks_offset * size_bytes
-	inbuf64[0x08 / 8] = block_offset;
+	inbuf64[0x08 / 8] = blocks_offset;
 	inbuf[0x10 / 4] = cnt;
 	inbuf[0x14 / 4] = size_bytes;
 	inbuf[0x18 / 4] = device_handle;
@@ -476,9 +476,9 @@ int FSA_RawWrite(int fd, void* data, u32 size_bytes, u32 cnt, u64 blocks_offset,
 	iovec_s* iovec = (iovec_s*)&iobuf[0x7C0];
 	u32* inbuf = (u32*)inbuf8;
 	u32* outbuf = (u32*)outbuf8;
-	u64* inbuf64 = (u64*)inbuf32;
+	u64* inbuf64 = (u64*)inbuf;
 
-	inbuf64[0x08 / 8] = block_offset;
+	inbuf64[0x08 / 8] = blocks_offset;
 	inbuf[0x10 / 4] = cnt;
 	inbuf[0x14 / 4] = size_bytes;
 	inbuf[0x18 / 4] = device_handle;
