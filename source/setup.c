@@ -42,14 +42,16 @@ void wait_mlc_ready(int fd){
     debug_printf("MLC ready!\n");
 }
 
-void flush_mlc(int fd){
+int flush_mlc(int fd){
     int ret = FSA_FlushVolume(fd, "/vol/storage_mlc01");
     debug_printf("Flush MLC returned %X\n", ret);
+    return ret;
 }
 
-void flush_slc(int fd){
+int flush_slc(int fd){
     int ret = FSA_FlushVolume(fd, "/vol/system");
     debug_printf("Flush SLC returned %X\n", ret);
+    return ret;
 }
 
 
@@ -118,11 +120,28 @@ void install_all_titles(int fd, char *directory){
     FSA_CloseDir(fd, dir);
 }
 
+
+int error_state = 0;
+
+void update_error_state(int value, int level){
+    if(value){
+        if(level > error_state){
+            if(level = 1) {
+                SetNotificationLED(NOTIF_LED_BLUE_BLINKING);
+            }else{
+                SetNotificationLED(NOTIF_LED_RED_BLINKING);
+            }
+            error_state = level;
+        }
+    }
+}
+
 u32 setup_main(void* arg){
 
-    debug_printf("START MLC SETUP");
+    bool warning = 0;
+    bool error = 0;
 
-    SetNotificationLED(NOTIF_LED_BLUE_BLINKING);
+    debug_printf("START MLC SETUP");
 
     int fd = -1;
     int i = 1;
@@ -135,29 +154,44 @@ u32 setup_main(void* arg){
 
     wait_mlc_ready(fd);
 
+    SetNotificationLED(NOTIF_LED_BLUE_BLINKING);
+
     int ret = FSA_MakeQuota(fd, "/vol/storage_mlc01/sys", 0, 3221225472);
     debug_printf("MakeQuota /vol/storage_mlc01/sys -%X\n", -ret);
+    update_error_state(ret, 1);
 
     for(i = 0; folders_to_create[i]; i++){
         int ret = FSA_MakeDir(fd, folders_to_create[i], 0);
         debug_printf("Create %s -%X\n", folders_to_create[i] -ret);
+        update_error_state(ret, 1);
     }
 
-    flush_mlc(fd);
+    ret = flush_mlc(fd);
+    update_error_state(ret, 2);
     
     mount_sd(fd, "/vol/sdcard/");
     install_all_titles(fd, "/vol/sdcard/wafel_install");
-    flush_mlc(fd);
+    ret = flush_mlc(fd);
+    update_error_state(ret, 2);
 
     ret = SCISetInitialLaunch(255);
     debug_printf("Set InitalLaunch returned %X\n", ret);
-    flush_slc(fd);
+    update_error_state(ret, 2);
+    ret = flush_slc(fd);
+    update_error_state(ret, 2);
 
     iosClose(fd);
 
     debug_printf("MLC SETUP FINISHED!");
 
-    SetNotificationLED(NOTIF_LED_BLUE);
+    if(!error_state){
+        SetNotificationLED(NOTIF_LED_BLUE);
+    }else if(error_state == 1) {
+        SetNotificationLED(NOTIF_LED_ORANGE);
+    }else{
+        // Keep red blinking to differentiate power off
+        //SetNotificationLED(NOTIF_LED_RED);
+    }
 
     return 0;
 }
