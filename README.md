@@ -21,6 +21,8 @@ This plugin for [stroopwafel](https://github.com/shinyquagsire23/stroopwafel) al
 
 If you are using the same size media or didn't replace the media the format might not run, because the old wfs is still detected. To force a format see [wafel_destroy_mlc](https://github.com/jan-hofmeier/wafel_destroy_mlc)
 
+The mlc system titles can be downloaded using the [MLCRestorerDownloader by Xpl0itU](https://github.com/Xpl0itU/MLCRestorerDownloader)
+
 
 ## Building
 
