@@ -7,6 +7,7 @@
 
 #include "setup.h"
 #include "sci.h"
+#include "led.h"
 
 char *folders_to_create[] = { "/vol/storage_mlc01/usr", "/vol/storage_mlc01/usr/boss", "/vol/storage_mlc01/usr/save", "/vol/storage_mlc01/usr/save/00050010",
                      "/vol/storage_mlc01/usr/packages", "/vol/storage_mlc01/usr/tmp", NULL };
@@ -120,6 +121,9 @@ void install_all_titles(int fd, char *directory){
 u32 setup_main(void* arg){
 
     debug_printf("START MLC SETUP");
+
+    SetNotificationLED(NOTIF_LED_BLUE_BLINKING);
+
     int fd = -1;
     int i = 1;
     while(fd < 0)
@@ -152,6 +156,8 @@ u32 setup_main(void* arg){
     iosClose(fd);
 
     debug_printf("MLC SETUP FINISHED!");
+
+    SetNotificationLED(NOTIF_LED_BLUE);
 
     return 0;
 }
