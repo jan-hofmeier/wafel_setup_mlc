@@ -19,6 +19,8 @@ This plugin for [stroopwafel](https://github.com/shinyquagsire23/stroopwafel) al
 - remove `wafel_setup_mlc.ipx` from `/wiiu/ios_plugins`
 - boot Wii U, a factory reset start automatically
 
+If you are using the same size media or didn't replace the media the format might not run, because the old wfs is still detected. To force a format see [wafel_destroy_mlc](https://github.com/jan-hofmeier/wafel_destroy_mlc)
+
 
 ## Building
 
@@ -27,9 +29,16 @@ export STROOPWAFEL_ROOT=/path/too/stroopwafel-repo
 make
 ```
 
+## Replacing the MLC
+
+One way to replace the MLC on your Wii U would be to replace the 8GB / 32GB eMMC with a micro SD card. To make the replacement more convieneint I recommend Voultars [Wii-U NAND-AID - eMMC Recovery and Replacement Interposer](https://gbatemp.net/threads/wii-u-nand-aid-emmc-recovery-and-replacement-interposer-public-test.630798/). Stock IOSU supports up to 64GB MLC. If you want more, you need to to [remove this limitation](https://github.com/jan-hofmeier/wafel_unlimit_mlc).
+
+The other way is to [replace the Disc Drive with a SATA SSD/HDD](https://gbatemp.net/threads/wii-u-internal-storage-upgrades-are-possible.635629/) using a SATA adapter. This option doesn't have size limitation other than the WFS limit of 2TB.
+
+
 ## Thanks
 
-- GaryOderNichts for the IOSU patch to keep IOSU from crashing
-- quarky for the IOSU patch to enable format
-- V10lator for quota creation and improving title install
-- Lazr1026 for testing
+- [GaryOrderNichts](https://github.com/GaryOderNichts) for the IOSU patch to keep IOSU from crashing
+- [Ash](https://github.com/ashquarky) for the IOSU patch to enable format
+- [V10lator](https://github.com/V10lator) for quota creation and improving title install
+- [Lazr1026](https://github.com/Lazr1026) for testing and debugging
