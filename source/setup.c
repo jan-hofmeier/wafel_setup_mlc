@@ -55,12 +55,30 @@ int flush_slc(int fd){
 }
 
 
-void install_title(int mcp_handle, char *install_dir){
+int install_title(int mcp_handle, char *install_dir){
         int ret = MCP_InstallTarget(mcp_handle, 0);
-        debug_printf("installtarget : %08x", ret);
+        debug_printf("installtarget : %08x\n", ret);
 
         ret = MCP_Install(mcp_handle, install_dir);
-        debug_printf("install : %08x", ret);
+        debug_printf("install : %08x\n", ret);
+        return ret;
+}
+
+int error_state = 0;
+
+void update_error_state(int value, int level){
+    if(value){
+        if(level > error_state){
+            if(level = 1) {
+                SetNotificationLED(NOTIF_LED_BLUE_BLINKING);
+                debug_printf("WARNING WARNING WARNING WARNING WARNING WARNING\n");
+            }else{
+                SetNotificationLED(NOTIF_LED_RED_BLINKING);
+                debug_printf("ERROR ERROR ERROR ERROR ERROR ERROR ERROR\n");
+            }
+            error_state = level;
+        }
+    }
 }
 
 void install_all_titles(int fd, char *directory){
@@ -109,9 +127,12 @@ void install_all_titles(int fd, char *directory){
 
             // test if installable
             ret = MCP_InstallGetInfo(mcp_handle, install_dir);
-            debug_printf("installinfo %s: %08x", dir_entry->name, ret);
-            if(!ret)
-                install_title(mcp_handle, install_dir);
+            debug_printf("installinfo %s: %08x\n", dir_entry->name, ret);
+            update_error_state(ret, 1);
+            if(!ret){
+                ret = install_title(mcp_handle, install_dir);
+                update_error_state(ret, 2);
+            }
         }
     }
     iosFree(0x00001, install_dir);
@@ -120,28 +141,12 @@ void install_all_titles(int fd, char *directory){
     FSA_CloseDir(fd, dir);
 }
 
-
-int error_state = 0;
-
-void update_error_state(int value, int level){
-    if(value){
-        if(level > error_state){
-            if(level = 1) {
-                SetNotificationLED(NOTIF_LED_BLUE_BLINKING);
-            }else{
-                SetNotificationLED(NOTIF_LED_RED_BLINKING);
-            }
-            error_state = level;
-        }
-    }
-}
-
 u32 setup_main(void* arg){
 
     bool warning = 0;
     bool error = 0;
 
-    debug_printf("START MLC SETUP");
+    debug_printf("START MLC SETUP\n");
 
     int fd = -1;
     int i = 1;
@@ -156,39 +161,41 @@ u32 setup_main(void* arg){
 
     SetNotificationLED(NOTIF_LED_BLUE_BLINKING);
 
-    int ret = FSA_MakeQuota(fd, "/vol/storage_mlc01/sys", 0, 3221225472);
-    debug_printf("MakeQuota /vol/storage_mlc01/sys -%X\n", -ret);
-    update_error_state(ret, 1);
+    int sys_quote_ret = FSA_MakeQuota(fd, "/vol/storage_mlc01/sys", 0, 3221225472);
+    debug_printf("MakeQuota /vol/storage_mlc01/sys -%X\n", -sys_quote_ret);
+    update_error_state(sys_quote_ret, 1);
 
+    int folder_ret[sizeof(folders_to_create) / sizeof(folders_to_create[0])] = { 0 };
     for(i = 0; folders_to_create[i]; i++){
-        int ret = FSA_MakeDir(fd, folders_to_create[i], 0);
-        debug_printf("Create %s -%X\n", folders_to_create[i] -ret);
-        update_error_state(ret, 1);
+        folder_ret[i] = FSA_MakeDir(fd, folders_to_create[i], 0);
+        debug_printf("Create %s -%X\n", folders_to_create[i] -folder_ret[i]);
+        update_error_state(folder_ret[i], 1);
     }
 
-    ret = flush_mlc(fd);
-    update_error_state(ret, 2);
+    int flush_ret = flush_mlc(fd);
+    update_error_state(flush_ret, 2);
     
     mount_sd(fd, "/vol/sdcard/");
     install_all_titles(fd, "/vol/sdcard/wafel_install");
-    ret = flush_mlc(fd);
-    update_error_state(ret, 2);
+    int ret = flush_mlc(fd);
+    update_error_state(flush_ret, 2);
 
-    ret = SCISetInitialLaunch(255);
-    debug_printf("Set InitalLaunch returned %X\n", ret);
-    update_error_state(ret, 2);
+    int reset_ret = SCISetInitialLaunch(255);
+    debug_printf("Set InitalLaunch returned %X\n", reset_ret);
+    update_error_state(reset_ret, 2);
     ret = flush_slc(fd);
     update_error_state(ret, 2);
 
     iosClose(fd);
 
-    debug_printf("MLC SETUP FINISHED!");
-
     if(!error_state){
         SetNotificationLED(NOTIF_LED_BLUE);
+        debug_printf("MLC SETUP FINISHED!\n");
     }else if(error_state == 1) {
         SetNotificationLED(NOTIF_LED_ORANGE);
+        debug_printf("MLC SETUP FINISHED with WARNING!\n");
     }else{
+        debug_printf("MLC SETUP FINISHED with ERROR!\n");
         // Keep red blinking to differentiate power off
         //SetNotificationLED(NOTIF_LED_RED);
     }
