@@ -234,6 +234,11 @@ u32 setup_main(void* arg){
     update_error_state(ret, 2);
     write_log(fsaHandle, logHandle, "Flush", "SLC", ret);
 
+    ret = FSA_CloseFile(fsaHandle, logHandle);
+    debug_printf("Close logfile returned -%X\n", -ret);
+    ret = FSA_Unmount(fsaHandle, "/vol/sdcard/", 2);
+    debug_printf("Unmount SD -%X\n", -ret);
+
     iosClose(fsaHandle);
 
     if(!error_state){
