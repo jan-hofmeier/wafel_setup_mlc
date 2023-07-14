@@ -179,7 +179,6 @@ u32 setup_main(void* arg){
     bool error = 0;
 
     debug_printf("START MLC SETUP\n");
-    SetNotificationLED(NOTIF_LED_RED | NOTIF_LED_RED_BLINKING);
 
     int fsaHandle = -1;
     int i = 1;
