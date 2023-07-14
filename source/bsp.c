@@ -35,9 +35,7 @@ int bspWrite(const char* entity, uint32_t instance, const char* attribute, uint3
     strncpy((char*) (buf + 9), attribute, 0x20);
     buf[17] = size;
     memcpy((char*) (buf + 18), buffer, size);
-    debug_printf("bspWrite do iosIoCtl\n");
     int res = iosIoctl(handle, 6, buf, 0x48 + size, NULL, 0);
-    debug_printf("bspWrite free buff\n");
     freeIobuf(buf);
     iosClose(handle);
 
