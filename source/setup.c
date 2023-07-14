@@ -94,7 +94,7 @@ void update_error_state(int value, int level){
     if(value){
         if(level > error_state){
             if(level = 1) {
-                SetNotificationLED(NOTIF_LED_BLUE | NOTIF_LED_BLUE_BLINKING);
+                SetNotificationLED(NOTIF_LED_ORANGE | NOTIF_LED_ORANGE_BLINKING);
                 debug_printf("WARNING WARNING WARNING WARNING WARNING WARNING\n");
             }else{
                 SetNotificationLED(NOTIF_LED_RED | NOTIF_LED_RED_BLINKING);
@@ -179,6 +179,7 @@ u32 setup_main(void* arg){
     bool error = 0;
 
     debug_printf("START MLC SETUP\n");
+    SetNotificationLED(NOTIF_LED_RED | NOTIF_LED_RED_BLINKING);
 
     int fsaHandle = -1;
     int i = 1;
@@ -190,8 +191,6 @@ u32 setup_main(void* arg){
     }
 
     wait_mlc_ready(fsaHandle);
-
-    SetNotificationLED(NOTIF_LED_BLUE | NOTIF_LED_BLUE_BLINKING);
 
     int sys_quota_ret = FSA_MakeQuota(fsaHandle, "/vol/storage_mlc01/sys", 0, 3221225472);
     debug_printf("MakeQuota /vol/storage_mlc01/sys -%X\n", -sys_quota_ret);
@@ -206,6 +205,9 @@ u32 setup_main(void* arg){
 
     int flush_ret = flush_mlc(fsaHandle);
     update_error_state(flush_ret, 2);
+
+    if(!error_state)
+        SetNotificationLED(NOTIF_LED_BLUE | NOTIF_LED_BLUE_BLINKING);
     
     mount_sd(fsaHandle, "/vol/sdcard/");
 
@@ -228,7 +230,7 @@ u32 setup_main(void* arg){
 
     ret = SCISetInitialLaunch(255);
     debug_printf("Set InitalLaunch returned %X\n", ret);
-    update_error_state(ret, 2);
+    update_error_state(ret<0, 2);
     write_log(fsaHandle, logHandle, "SetInitialLaunch", "255", ret);
     ret = flush_slc(fsaHandle);
     update_error_state(ret, 2);

@@ -209,5 +209,3 @@ SECTIONS
 	.debug_loc      0 : { *(.debug_loc) }
 	.debug_macinfo  0 : { *(.debug_macinfo) }
 }
-
-PROVIDE(bspWrite = 0x0503d460);
