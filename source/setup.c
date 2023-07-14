@@ -199,7 +199,7 @@ u32 setup_main(void* arg){
     int folder_ret[sizeof(folders_to_create) / sizeof(folders_to_create[0])] = { 0 };
     for(i = 0; folders_to_create[i]; i++){
         folder_ret[i] = FSA_MakeDir(fsaHandle, folders_to_create[i], 0);
-        debug_printf("Create %s -%X\n", folders_to_create[i] -folder_ret[i]);
+        debug_printf("Create %s -%X\n", folders_to_create[i], -folder_ret[i]);
         update_error_state(folder_ret[i], 1);
     }
 
