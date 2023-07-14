@@ -7,7 +7,7 @@ This plugin for [stroopwafel](https://github.com/shinyquagsire23/stroopwafel) al
 - Creates a 3GB quota for `sys` on the MLC
 - Creates minimal required `usr` directories on MLC
 - installs titles from `sd:/wafel_install`
-- triggers a factory reset on reboot
+- triggers inital setup on next boot
 
 ## How to use
 
@@ -17,7 +17,7 @@ This plugin for [stroopwafel](https://github.com/shinyquagsire23/stroopwafel) al
 - wait till it says it's done
 - power off
 - remove `wafel_setup_mlc.ipx` from `/wiiu/ios_plugins`
-- boot Wii U, a factory reset start automatically
+- boot Wii U, initial setup should launch
 
 If you are using the same size media or didn't replace the media the format might not run, because the old wfs is still detected. To force a format see [wafel_destroy_mlc](https://github.com/jan-hofmeier/wafel_destroy_mlc)
 

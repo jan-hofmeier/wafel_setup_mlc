@@ -228,10 +228,10 @@ u32 setup_main(void* arg){
     update_error_state(flush_ret, 2);
     write_log(fsaHandle, logHandle, "Flush", "MLC", flush_ret);
 
-    ret = SCISetInitialLaunch(255);
+    ret = SCISetInitialLaunch(0);
     debug_printf("Set InitalLaunch returned %X\n", ret);
     update_error_state(ret<0, 2);
-    write_log(fsaHandle, logHandle, "SetInitialLaunch", "255", ret);
+    write_log(fsaHandle, logHandle, "SetInitialLaunch", "0", ret);
     ret = flush_slc(fsaHandle);
     update_error_state(ret, 2);
     write_log(fsaHandle, logHandle, "Flush", "SLC", ret);
