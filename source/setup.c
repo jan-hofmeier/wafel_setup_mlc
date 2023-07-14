@@ -158,7 +158,7 @@ void install_all_titles(int fd, char *directory, int logHandle){
             // test if installable
             ret = MCP_InstallGetInfo(mcp_handle, install_dir);
             debug_printf("installinfo %s: %08x\n", dir_entry->name, ret);
-            update_error_state(!ret, 1);
+            update_error_state(ret, 1);
             write_log(fd,logHandle, "InstallInfo", dir_entry->name, ret);
             if(!ret){
                 ret = install_title(mcp_handle, install_dir);
