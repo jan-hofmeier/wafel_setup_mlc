@@ -88,9 +88,5 @@ int SCIGetParentalSecAnswer(char* buf, uint32_t buf_size)
 
 int SCISetInitialLaunch(uint8_t initialLaunch)
 {
-    //uint8_t *initialLaunch = iosAlloc(0xcaff, 1);
-    //*initialLaunch = param_1;
     return _SCIWriteSysConfig("cafe.initial_launch",UC_DATA_TYPE_U8,1,&initialLaunch);
-    //iosFree(0xcaff, initialLaunch);
-    //return ret;
 }
