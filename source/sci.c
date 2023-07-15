@@ -86,11 +86,11 @@ int SCIGetParentalSecAnswer(char* buf, uint32_t buf_size)
     return _SCIReadSysConfig("parent.sec_answer", UC_DATA_TYPE_STRING, buf_size, buf);
 }
 
-int SCISetInitialLaunch(uint8_t param_1)
+int SCISetInitialLaunch(uint8_t initialLaunch)
 {
-    uint8_t *initialLaunch = iosAlloc(0xcaff, 1);
-    *initialLaunch = param_1;
-    int ret =  _SCIWriteSysConfig("cafe.initial_launch",UC_DATA_TYPE_U8,1,initialLaunch);
-    iosFree(0xcaff, initialLaunch);
-    return ret;
+    //uint8_t *initialLaunch = iosAlloc(0xcaff, 1);
+    //*initialLaunch = param_1;
+    return _SCIWriteSysConfig("cafe.initial_launch",UC_DATA_TYPE_U8,1,&initialLaunch);
+    //iosFree(0xcaff, initialLaunch);
+    //return ret;
 }

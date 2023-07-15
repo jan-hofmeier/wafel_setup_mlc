@@ -7,7 +7,6 @@
 #include <wafel/utils.h>
 #include <wafel/patch.h>
 #include <wafel/ios/svc.h>
-#include <wafel/ios/memory.h>
 
 #include "setup.h"
 
@@ -41,7 +40,7 @@ void mcp_main()
 	debug_printf("we in setup mlc MCP %p\n", mcp_main);
 
     // Start up setup thread
-    u8* setup_stack = (u8*)malloc_global(0x1000);
+    u8* setup_stack = (u8*) iosAllocAligned(0x0001, 0x1000, 0x20);
     if (!setup_stack) {
         debug_printf("ERROR: failed to allocate stack for setup thread\n");
         return;
