@@ -103,6 +103,7 @@ int install_title(int mcp_handle, char *install_dir){
         return ret;
 }
 
+// Both MCP_GetSysProdSettings and MCP_SetSysProdSettings are from recovery_menu and were modified for use with stroopwafel.
 int MCP_GetSysProdSettings(int fd, MCPSysProdSettings* out_sysProdSettings)
 {
     uint8_t* buf = allocIobuf(sizeof(iovec_s) + sizeof(*out_sysProdSettings));

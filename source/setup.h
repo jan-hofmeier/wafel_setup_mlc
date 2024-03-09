@@ -6,6 +6,7 @@
 #include <wafel/services/fsa.h>
 #include <assert.h>
 
+// This stuff was taken directly from Garys recovery_menu
 typedef enum
 {
     MCP_REGION_JAPAN = 0x01,
