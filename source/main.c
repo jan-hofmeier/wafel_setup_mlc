@@ -28,6 +28,9 @@ void kern_main()
     // format MLC if needed
     ASM_PATCH_K(0x05027D24, ".thumb\nnop\nnop\n");
 
+    // Patch MCP_SetSysProdSettings debug mode check (or at least try to)
+    ASM_PATCH_K(0x05024648, ".thumb\nnop\nnop\n");
+
     debug_printf("setup patches applied\n");
 }
 
