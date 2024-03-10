@@ -1,6 +1,20 @@
 #include "sysprod.h"
 #include "setup.h"
 
+static void* allocIobuf(size_t size)
+{
+    void* ptr = iosAlloc(0xCAFF, size);
+
+    memset(ptr, 0x00, size);
+
+    return ptr;
+}
+
+static void freeIobuf(void* ptr)
+{
+	iosFree(0xCAFF, ptr);
+}
+
 // Both MCP_GetSysProdSettings and MCP_SetSysProdSettings are from recovery_menu and were modified for use with stroopwafel.
 int MCP_GetSysProdSettings(int fd, MCPSysProdSettings* out_sysProdSettings)
 {
