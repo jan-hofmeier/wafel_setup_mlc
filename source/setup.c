@@ -58,7 +58,7 @@ void wait_mlc_ready(int fd){
     int dir = 0;
     do
     {
-        usleep(1000);
+        usleep(1000000);
         ret = FSA_OpenDir(fd, "/vol/storage_mlc01/", &dir);
         debug_printf("MLC open attempt %d %X\n", i++, ret);
     }while(ret < 0);
@@ -191,19 +191,8 @@ u32 setup_main(void* arg){
 
     wait_mlc_ready(fsaHandle);
 
-    int sys_quota_ret = FSA_MakeQuota(fsaHandle, "/vol/storage_mlc01/sys", 0, 3221225472);
-    debug_printf("MakeQuota /vol/storage_mlc01/sys -%X\n", -sys_quota_ret);
-    update_error_state(sys_quota_ret, 1);
-
-    int folder_ret[sizeof(folders_to_create) / sizeof(folders_to_create[0])] = { 0 };
-    for(i = 0; folders_to_create[i]; i++){
-        folder_ret[i] = FSA_MakeDir(fsaHandle, folders_to_create[i], 0);
-        debug_printf("Create %s -%X\n", folders_to_create[i], -folder_ret[i]);
-        update_error_state(folder_ret[i], 1);
-    }
-
-    int flush_ret = flush_mlc(fsaHandle);
-    update_error_state(flush_ret, 2);
+    // give system time to create folders and init
+    usleep(5000000);
 
     if(!error_state)
         SetNotificationLED(NOTIF_LED_BLUE | NOTIF_LED_BLUE_BLINKING);
@@ -215,15 +204,8 @@ u32 setup_main(void* arg){
     debug_printf("Open logfile -%X\n", -ret);
     update_error_state(ret, 1);
 
-    // write out log entries from before the SD was mounted
-    write_log(fsaHandle, logHandle, "MakeQuota",  "/vol/storage_mlc01/sys", sys_quota_ret);
-    for(i = 0; folders_to_create[i]; i++){
-        write_log(fsaHandle, logHandle, "MakeDir", folders_to_create[i], folder_ret[i]);
-    }
-    write_log(fsaHandle, logHandle, "Flush", "MLC", flush_ret);
-
     install_all_titles(fsaHandle, "/vol/sdcard/wafel_install", logHandle);
-    flush_ret = flush_mlc(fsaHandle);
+    int flush_ret = flush_mlc(fsaHandle);
     update_error_state(flush_ret, 2);
     write_log(fsaHandle, logHandle, "Flush", "MLC", flush_ret);
 
