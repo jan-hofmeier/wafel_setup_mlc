@@ -190,7 +190,45 @@ void install_all_titles(int fd, char *directory, int logHandle){
     FSA_CloseDir(fd, dir);
 }
 
-void fix_region(int fsaHandle, int logHandle){
+u32 find_installed_regions(int fsaHandle){
+    int region = 0;
+    int dirHandle = -1;
+    
+    // Wii U Menu path ('x' is at path[43])
+    char path[] = "/vol/storage_mlc01/sys/title/00050010/10040x00/code/app.xml";
+
+    for(int i=0; i<6; i++){
+        int fileHandle = -1;
+        path[43] = '0' + i;
+        if(FSA_OpenFile(fsaHandle, path, "r", &fileHandle)>=0){
+            FSA_CloseFile(fsaHandle, fileHandle);
+            region|=1<<i;
+        }
+    }
+
+    return region;
+}
+
+void fix_region(int fsaHandle, int logHandle, int old_regions){
+
+    debug_printf("Old regions  %X\n", old_regions);
+    int installed_regions = find_installed_regions(fsaHandle);
+    if(!installed_regions){
+        // handle failure
+        update_error_state(0, 1);
+        debug_printf("Failed to detect Wii U Menu region. Skipping setting sys_prod values.\n", 0);
+        log_printf(fsaHandle, logHandle, "Failed to detect Wii U Menu region. Skipping setting sys_prod values.\n", 0);
+        return;
+    }
+    debug_printf("Installed regions  %X\n", installed_regions);
+
+    int new_regions = installed_regions & ~old_regions;
+    debug_printf("New regions  %X\n", new_regions);
+
+    int target_regions = new_regions?new_regions:installed_regions;
+    debug_printf("Target regions  %X\n", target_regions);
+
+
     // Massive props to Gary
     int mcp_handle = iosOpen("/dev/mcp", 0);
 
@@ -205,30 +243,25 @@ void fix_region(int fsaHandle, int logHandle){
       return;
     }
 
-    int region = -1;
-    int dirHandle = -1;
-    if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040000", &dirHandle) == 0){
-        region = MCP_REGION_JAPAN;
-    } else if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040100", &dirHandle) == 0){
-        region = MCP_REGION_USA;
-    } else if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040200", &dirHandle) == 0){
-        region = MCP_REGION_EUROPE;
+    bool region_hax = sysProdSettings.product_area != sysProdSettings.game_region;
+
+    if(sysProdSettings.product_area & target_regions){     
+        if(!region_hax) // we want to remove region hax
+            return; // no need to change anything
     } else {
-        // handle failure
-        update_error_state(0, 1);
-        debug_printf("Failed to detect Wii U Menu region. Skipping setting sys_prod values.\n", 0);
-        log_printf(fsaHandle, logHandle, "Failed to detect Wii U Menu region. Skipping setting sys_prod values.\n", 0);
-        return;
+        // descide on one region in case there a multiple candidates
+        for(int r=MCP_REGION_TAIWAN; r; r>>=1){
+            if(target_regions & r){
+                sysProdSettings.product_area = r;
+                break;
+            }
+        }
     }
-
-    FSA_CloseDir(fsaHandle, dirHandle);
-
-    sysProdSettings.product_area = sysProdSettings.game_region = region;
+    sysProdSettings.game_region = sysProdSettings.product_area;
     ret = MCP_SetSysProdSettings(mcp_handle, &sysProdSettings);
-    debug_printf("Set Region to %X: %X\n", region, ret);
-    log_printf(fsaHandle, logHandle, "Set region to %X:, %X\n", region, ret);
+    debug_printf("Set Region to %X: %X\n", sysProdSettings.game_region, ret);
+    log_printf(fsaHandle, logHandle, "Set region to %X:, %X\n", sysProdSettings.game_region, ret);
 }
-
 
 u32 setup_main(void* arg){
 
@@ -261,12 +294,14 @@ u32 setup_main(void* arg){
     debug_printf("Open logfile -%X\n", -ret);
     update_error_state(ret, 1);
 
+    int regions_before_install = find_installed_regions(fsaHandle);
+
     install_all_titles(fsaHandle, "/vol/sdcard/wafel_install", logHandle);
     int flush_ret = flush_mlc(fsaHandle);
     update_error_state(flush_ret, 2);
     log_printf(fsaHandle, logHandle, "Flush", "MLC", flush_ret);
 
-    fix_region(fsaHandle, logHandle);
+    fix_region(fsaHandle, logHandle, regions_before_install);
 
     ret = SCISetInitialLaunch(0);
     debug_printf("Set InitalLaunch returned %X\n", ret);
