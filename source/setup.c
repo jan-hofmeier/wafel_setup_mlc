@@ -104,7 +104,6 @@ int install_title(int mcp_handle, char *install_dir){
         return ret;
 }
 
-
 int error_state = 0;
 
 void update_error_state(int value, int level){
@@ -121,6 +120,7 @@ void update_error_state(int value, int level){
         }
     }
 }
+
 
 void install_all_titles(int fd, char *directory, int logHandle){
     int dir = 0;
@@ -190,6 +190,46 @@ void install_all_titles(int fd, char *directory, int logHandle){
     FSA_CloseDir(fd, dir);
 }
 
+void fix_region(int fsaHandle, int logHandle){
+    // Massive props to Gary
+    int mcp_handle = iosOpen("/dev/mcp", 0);
+
+    MCPSysProdSettings sysProdSettings;
+    int ret = MCP_GetSysProdSettings(mcp_handle, &sysProdSettings);
+    debug_printf("MCP_GetSysProdSettings: %X\n", ret);
+    if (ret != 0) {
+      // handle failure to not corrupt
+      update_error_state(0, 1);
+      debug_printf("MCP_GetSysProdSettings failed: %X. Skipping setting sys_prod values.", ret);
+      log_printf(fsaHandle, logHandle, "MCP_GetSysProdSettings failed: %X. Skipping setting sys_prod values.", ret);
+      return;
+    }
+
+    int region = -1;
+    int dirHandle = -1;
+    if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040000", &dirHandle) == 0){
+        region = MCP_REGION_JAPAN;
+    } else if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040100", &dirHandle) == 0){
+        region = MCP_REGION_USA;
+    } else if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040200", &dirHandle) == 0){
+        region = MCP_REGION_EUROPE;
+    } else {
+        // handle failure
+        update_error_state(0, 1);
+        debug_printf("Failed to detect Wii U Menu region. Skipping setting sys_prod values.", 0);
+        log_printf(fsaHandle, logHandle, "Failed to detect Wii U Menu region. Skipping setting sys_prod values.", 0);
+        return;
+    }
+
+    FSA_CloseDir(fsaHandle, dirHandle);
+
+    sysProdSettings.product_area = sysProdSettings.game_region = region;
+    ret = MCP_SetSysProdSettings(mcp_handle, &sysProdSettings);
+    debug_printf("Set Region to %X: %X\n", region, ret);
+    log_printf(fsaHandle, logHandle, "Set region to %X:, %X\n", region, ret);
+}
+
+
 u32 setup_main(void* arg){
 
     bool warning = 0;
@@ -244,36 +284,7 @@ u32 setup_main(void* arg){
     update_error_state(flush_ret, 2);
     log_printf(fsaHandle, logHandle, "Flush", "MLC", flush_ret);
 
-    // Massive props to Gary
-    int mcp_handle = iosOpen("/dev/mcp", 0);
-
-    MCPSysProdSettings sysProdSettings;
-    ret = MCP_GetSysProdSettings(mcp_handle, &sysProdSettings);
-    debug_printf("MCP_GetSysProdSettings: %X\n", ret);
-    if (ret != 0) {
-      // handle failure to not corrupt
-      return -1;
-    }
-
-    int region = -1;
-    int dirHandle = -1;
-    if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040000", &dirHandle) == 0){
-        region = MCP_REGION_JAPAN;
-    } else if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040100", &dirHandle) == 0){
-        region = MCP_REGION_USA;
-    } else if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040200", &dirHandle) == 0){
-        region = MCP_REGION_EUROPE;
-    } else {
-        // handle failure
-        return -1;
-    }
-
-    FSA_CloseDir(fsaHandle, dirHandle);
-
-    sysProdSettings.product_area = sysProdSettings.game_region = region;
-    ret = MCP_SetSysProdSettings(mcp_handle, &sysProdSettings);
-    debug_printf("Set Region to %X: %X\n", region, ret);
-    log_printf(fsaHandle, logHandle, "Set region to %X:, %X\n", region, ret);
+    fix_region(fsaHandle, logHandle);
 
     ret = SCISetInitialLaunch(0);
     debug_printf("Set InitalLaunch returned %X\n", ret);
@@ -282,9 +293,6 @@ u32 setup_main(void* arg){
     ret = flush_slc(fsaHandle);
     update_error_state(ret, 2);
     log_printf(fsaHandle, logHandle, "Flush", "SLC", ret);
-
-    //ret = FSA_Remove(fsaHandle, "/vol/sdcard/wiiu/ios_plugins/wafel_setup_mlc.ipx", 0);
-    //debug_printf("Delete Pluging -%X\n", -ret);
 
     ret = FSA_CloseFile(fsaHandle, logHandle);
     debug_printf("Close logfile returned -%X\n", -ret);
