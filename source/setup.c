@@ -200,8 +200,8 @@ void fix_region(int fsaHandle, int logHandle){
     if (ret != 0) {
       // handle failure to not corrupt
       update_error_state(0, 1);
-      debug_printf("MCP_GetSysProdSettings failed: %X. Skipping setting sys_prod values.", ret);
-      log_printf(fsaHandle, logHandle, "MCP_GetSysProdSettings failed: %X. Skipping setting sys_prod values.", ret);
+      debug_printf("MCP_GetSysProdSettings failed: %X. Skipping setting sys_prod values.\n", ret);
+      log_printf(fsaHandle, logHandle, "MCP_GetSysProdSettings failed: %X. Skipping setting sys_prod values.\n", ret);
       return;
     }
 
@@ -216,8 +216,8 @@ void fix_region(int fsaHandle, int logHandle){
     } else {
         // handle failure
         update_error_state(0, 1);
-        debug_printf("Failed to detect Wii U Menu region. Skipping setting sys_prod values.", 0);
-        log_printf(fsaHandle, logHandle, "Failed to detect Wii U Menu region. Skipping setting sys_prod values.", 0);
+        debug_printf("Failed to detect Wii U Menu region. Skipping setting sys_prod values.\n", 0);
+        log_printf(fsaHandle, logHandle, "Failed to detect Wii U Menu region. Skipping setting sys_prod values.\n", 0);
         return;
     }
 
