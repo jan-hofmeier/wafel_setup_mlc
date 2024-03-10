@@ -28,6 +28,9 @@ void kern_main()
     // format MLC if needed
     ASM_PATCH_K(0x05027D24, ".thumb\nnop\nnop\n");
 
+    // Patch MCP_SetSysProdSettings debug mode check
+    ASM_PATCH_K(0x05024648, ".thumb\nnop\nnop\n");
+
     // create all system directries if they don't exist
     ASM_T_PATCH_K(0x050155ea, "tst r2,r2\n");
 

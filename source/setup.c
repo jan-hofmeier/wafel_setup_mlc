@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include <wafel/utils.h>
 #include <wafel/services/fsa.h>
@@ -9,6 +10,7 @@
 #include "setup.h"
 #include "sci.h"
 #include "led.h"
+#include "sysprod.h"
 
 #define MAX_LOG_LINE_LENGHT 512
 #define CROSS_PROCESS_HEAP_ID 0xcaff
@@ -17,15 +19,28 @@ char *folders_to_create[] = { "/vol/storage_mlc01/usr", "/vol/storage_mlc01/usr/
                      "/vol/storage_mlc01/usr/packages", "/vol/storage_mlc01/usr/tmp", NULL };
 
 
-static int write_log(int fsaHandle, int logHandle, const char *operation, const char *path, int res){
-    if(!logHandle)
+static int log_printf(int fsaHandle, int logHandle, const char* fmt, ...){
+    if(!logHandle) {
         return -1;
+    }
+
     void *dataBuffer = iosAllocAligned(CROSS_PROCESS_HEAP_ID, MAX_LOG_LINE_LENGHT, 0x40);
     if(!dataBuffer){
         debug_printf("Error allocating log buffer\n");
+        return -1;
     }
-    snprintf(dataBuffer, MAX_LOG_LINE_LENGHT, "%s;%s;-%08X\n", operation, path, res);
-    res = FSA_WriteFile(fsaHandle, dataBuffer, strnlen(dataBuffer, MAX_LOG_LINE_LENGHT), 1, logHandle, 0);
+
+    va_list args;
+    va_start(args, fmt);
+    int res = vsnprintf(dataBuffer, MAX_LOG_LINE_LENGHT, fmt, args);
+    va_end(args);
+
+    if (res < 0) {
+      iosFree(CROSS_PROCESS_HEAP_ID, dataBuffer);
+      return -1;
+    }
+
+    res = FSA_WriteFile(fsaHandle, dataBuffer, res, 1, logHandle, 0);
     iosFree(CROSS_PROCESS_HEAP_ID, dataBuffer);
     if(res == 1)
         res = FSA_FlushFile(fsaHandle, logHandle);
@@ -33,6 +48,7 @@ static int write_log(int fsaHandle, int logHandle, const char *operation, const 
       debug_printf("Error writing log: -%08X\n", -res);
       return -1;
     }
+
     return 0;
 }
 
@@ -47,7 +63,7 @@ void mount_sd(int fd, char* path)
         debug_printf("Mount SD attempt %d, %X\n", i++, ret);
         usleep(1000);
 
-        if (ret == 0xFFFCFFEA || ret == 0xFFFCFFE6 || i >= 0x100) break;
+        //if (ret == 0xFFFCFFEA || ret == 0xFFFCFFE6 || i >= 0x100) break;
     }
     debug_printf("Mounted SD...\n");
 }
@@ -105,10 +121,11 @@ void update_error_state(int value, int level){
     }
 }
 
+
 void install_all_titles(int fd, char *directory, int logHandle){
     int dir = 0;
     int ret = FSA_OpenDir(fd, directory, &dir);
-    write_log(fd,logHandle, "OpenDir", directory, ret);
+    log_printf(fd,logHandle, "OpenDir", directory, ret);
     if(ret)
     {
         update_error_state(1, 2);
@@ -117,7 +134,7 @@ void install_all_titles(int fd, char *directory, int logHandle){
     }
 
     int mcp_handle = iosOpen("/dev/mcp", 0);
-    write_log(fd,logHandle, "OpenMCP", directory, ret);
+    log_printf(fd,logHandle, "OpenMCP", directory, ret);
     if(mcp_handle <= 0)
     {
         update_error_state(1, 2);
@@ -159,11 +176,11 @@ void install_all_titles(int fd, char *directory, int logHandle){
             ret = MCP_InstallGetInfo(mcp_handle, install_dir);
             debug_printf("installinfo %s: %08x\n", dir_entry->name, ret);
             update_error_state(ret, 1);
-            write_log(fd,logHandle, "InstallInfo", dir_entry->name, ret);
+            log_printf(fd,logHandle, "InstallInfo", dir_entry->name, ret);
             if(!ret){
                 ret = install_title(mcp_handle, install_dir);
                 update_error_state(ret, 2);
-                write_log(fd,logHandle, "Install", dir_entry->name, ret);
+                log_printf(fd,logHandle, "Install", dir_entry->name, ret);
             }
         }
     }
@@ -172,6 +189,46 @@ void install_all_titles(int fd, char *directory, int logHandle){
     iosClose(mcp_handle);
     FSA_CloseDir(fd, dir);
 }
+
+void fix_region(int fsaHandle, int logHandle){
+    // Massive props to Gary
+    int mcp_handle = iosOpen("/dev/mcp", 0);
+
+    MCPSysProdSettings sysProdSettings;
+    int ret = MCP_GetSysProdSettings(mcp_handle, &sysProdSettings);
+    debug_printf("MCP_GetSysProdSettings: %X\n", ret);
+    if (ret != 0) {
+      // handle failure to not corrupt
+      update_error_state(0, 1);
+      debug_printf("MCP_GetSysProdSettings failed: %X. Skipping setting sys_prod values.\n", ret);
+      log_printf(fsaHandle, logHandle, "MCP_GetSysProdSettings failed: %X. Skipping setting sys_prod values.\n", ret);
+      return;
+    }
+
+    int region = -1;
+    int dirHandle = -1;
+    if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040000", &dirHandle) == 0){
+        region = MCP_REGION_JAPAN;
+    } else if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040100", &dirHandle) == 0){
+        region = MCP_REGION_USA;
+    } else if(ret = FSA_OpenDir(fsaHandle, "/vol/storage_mlc01/sys/title/00050010/10040200", &dirHandle) == 0){
+        region = MCP_REGION_EUROPE;
+    } else {
+        // handle failure
+        update_error_state(0, 1);
+        debug_printf("Failed to detect Wii U Menu region. Skipping setting sys_prod values.\n", 0);
+        log_printf(fsaHandle, logHandle, "Failed to detect Wii U Menu region. Skipping setting sys_prod values.\n", 0);
+        return;
+    }
+
+    FSA_CloseDir(fsaHandle, dirHandle);
+
+    sysProdSettings.product_area = sysProdSettings.game_region = region;
+    ret = MCP_SetSysProdSettings(mcp_handle, &sysProdSettings);
+    debug_printf("Set Region to %X: %X\n", region, ret);
+    log_printf(fsaHandle, logHandle, "Set region to %X:, %X\n", region, ret);
+}
+
 
 u32 setup_main(void* arg){
 
@@ -207,20 +264,25 @@ u32 setup_main(void* arg){
     install_all_titles(fsaHandle, "/vol/sdcard/wafel_install", logHandle);
     int flush_ret = flush_mlc(fsaHandle);
     update_error_state(flush_ret, 2);
-    write_log(fsaHandle, logHandle, "Flush", "MLC", flush_ret);
+    log_printf(fsaHandle, logHandle, "Flush", "MLC", flush_ret);
+
+    fix_region(fsaHandle, logHandle);
 
     ret = SCISetInitialLaunch(0);
     debug_printf("Set InitalLaunch returned %X\n", ret);
     update_error_state(ret<0, 2);
-    write_log(fsaHandle, logHandle, "SetInitialLaunch", "0", ret);
+    log_printf(fsaHandle, logHandle, "SetInitialLaunch", "0", ret);
     ret = flush_slc(fsaHandle);
     update_error_state(ret, 2);
-    write_log(fsaHandle, logHandle, "Flush", "SLC", ret);
+    log_printf(fsaHandle, logHandle, "Flush", "SLC", ret);
 
     ret = FSA_CloseFile(fsaHandle, logHandle);
     debug_printf("Close logfile returned -%X\n", -ret);
     ret = FSA_Unmount(fsaHandle, "/vol/sdcard", 2);
     debug_printf("Unmount SD -%X\n", -ret);
+
+    debug_printf("Re-enabling Power Transitions\n");
+    *(vu32*)0x0501f2bc = 1;
 
     iosClose(fsaHandle);
 
