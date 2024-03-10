@@ -31,6 +31,9 @@ void kern_main()
     // Patch MCP_SetSysProdSettings debug mode check
     ASM_PATCH_K(0x05024648, ".thumb\nnop\nnop\n");
 
+    // create all system directries if they don't exist
+    ASM_T_PATCH_K(0x050155ea, "tst r2,r2\n");
+
     debug_printf("setup patches applied\n");
 }
 
