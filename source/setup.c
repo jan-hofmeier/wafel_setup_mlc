@@ -197,7 +197,18 @@ void fix_region(int fsaHandle, int logHandle){
     debug_printf("Current coldboot title:    %08lx-%08lx",
             (uint32_t)(coldbootTitle >> 32), (uint32_t)(coldbootTitle & 0xFFFFFFFFU));
 
+    if(coldbootTitle & 0xFFFFFFFFFFFFF0FF != 0005001010040000UL){
+        update_error_state(0, 1);
+        debug_printf("Unknown coldboot title: %llX\n", coldbootTitle);
+    }
+
     int region_idx = (coldbootTitle>>8)&0xF;
+
+    if(region_idx>=6){
+        update_error_state(0, 1);
+        debug_printf("Unknown coldboot title region: %llX\n", coldbootTitle);  
+    }
+
     int coldbootRegion = 1<<region_idx;
 
     debug_printf("Colboot Title Region: 0x%X\n", coldbootRegion);
