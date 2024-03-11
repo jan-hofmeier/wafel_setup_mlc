@@ -125,7 +125,7 @@ void update_error_state(int value, int level){
 void install_all_titles(int fd, char *directory, int logHandle){
     int dir = 0;
     int ret = FSA_OpenDir(fd, directory, &dir);
-    log_printf(fd,logHandle, "OpenDir", directory, ret);
+    log_printf(fd,logHandle, "OpenDir %s: %X\n", directory, ret);
     if(ret)
     {
         update_error_state(1, 2);
@@ -134,7 +134,7 @@ void install_all_titles(int fd, char *directory, int logHandle){
     }
 
     int mcp_handle = iosOpen("/dev/mcp", 0);
-    log_printf(fd,logHandle, "OpenMCP", directory, ret);
+    log_printf(fd,logHandle, "OpenMCP %s: %X\n", directory, ret);
     if(mcp_handle <= 0)
     {
         update_error_state(1, 2);
@@ -176,11 +176,11 @@ void install_all_titles(int fd, char *directory, int logHandle){
             ret = MCP_InstallGetInfo(mcp_handle, install_dir);
             debug_printf("installinfo %s: %08x\n", dir_entry->name, ret);
             update_error_state(ret, 1);
-            log_printf(fd,logHandle, "InstallInfo", dir_entry->name, ret);
+            log_printf(fd,logHandle, "InstallInfo %s: %08x\n", dir_entry->name, ret);
             if(!ret){
                 ret = install_title(mcp_handle, install_dir);
                 update_error_state(ret, 2);
-                log_printf(fd,logHandle, "Install", dir_entry->name, ret);
+                log_printf(fd, logHandle, "Install %s: %08x\n", dir_entry->name, ret);
             }
         }
     }
@@ -200,13 +200,16 @@ void fix_region(int fsaHandle, int logHandle){
     if(coldbootTitle & 0xFFFFFFFFFFFFF0FF != 0005001010040000UL){
         update_error_state(0, 1);
         debug_printf("Unknown coldboot title: %llX\n", coldbootTitle);
+        log_printf(fsaHandle, logHandle, "Unknown coldboot title: %llX\n", coldbootTitle);
+        )
     }
 
     int region_idx = (coldbootTitle>>8)&0xF;
 
     if(region_idx>=6){
         update_error_state(0, 1);
-        debug_printf("Unknown coldboot title region: %llX\n", coldbootTitle);  
+        debug_printf("Unknown coldboot title region: %llX\n", coldbootTitle);
+        log_printf(fsaHandle, logHandle, "Unknown coldboot title region: %llX\n", coldbootTitle);
     }
 
     int coldbootRegion = 1<<region_idx;
@@ -271,17 +274,17 @@ u32 setup_main(void* arg){
     install_all_titles(fsaHandle, "/vol/sdcard/wafel_install", logHandle);
     int flush_ret = flush_mlc(fsaHandle);
     update_error_state(flush_ret, 2);
-    log_printf(fsaHandle, logHandle, "Flush", "MLC", flush_ret);
+    log_printf(fsaHandle, logHandle, "Flush MLC: %X\n", flush_ret);
 
     fix_region(fsaHandle, logHandle);
 
     ret = SCISetInitialLaunch(0);
     debug_printf("Set InitalLaunch returned %X\n", ret);
     update_error_state(ret<0, 2);
-    log_printf(fsaHandle, logHandle, "SetInitialLaunch", "0", ret);
+    log_printf(fsaHandle, logHandle, "SetInitialLaunch 0: %X\n", ret);
     ret = flush_slc(fsaHandle);
     update_error_state(ret, 2);
-    log_printf(fsaHandle, logHandle, "Flush", "SLC", ret);
+    log_printf(fsaHandle, logHandle, "Flush SLC%X\n", ret);
 
     ret = FSA_CloseFile(fsaHandle, logHandle);
     debug_printf("Close logfile returned -%X\n", -ret);
@@ -304,6 +307,8 @@ u32 setup_main(void* arg){
         // Keep red blinking to differentiate power off
         //SetNotificationLED(NOTIF_LED_RED);
     }
+
+
 
     return 0;
 }
