@@ -201,7 +201,6 @@ void fix_region(int fsaHandle, int logHandle){
         update_error_state(0, 1);
         debug_printf("Unknown coldboot title: %llX\n", coldbootTitle);
         log_printf(fsaHandle, logHandle, "Unknown coldboot title: %llX\n", coldbootTitle);
-        )
     }
 
     int region_idx = (coldbootTitle>>8)&0xF;
