@@ -284,7 +284,7 @@ u32 setup_main(void* arg){
     log_printf(fsaHandle, logHandle, "SetInitialLaunch 0: %X\n", ret);
     ret = flush_slc(fsaHandle);
     update_error_state(ret, 2);
-    log_printf(fsaHandle, logHandle, "Flush SLC%X\n", ret);
+    log_printf(fsaHandle, logHandle, "Flush SLC: %X\n", ret);
 
     ret = FSA_CloseFile(fsaHandle, logHandle);
     debug_printf("Close logfile returned -%X\n", -ret);
