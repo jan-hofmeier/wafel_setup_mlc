@@ -288,7 +288,7 @@ u32 setup_main(void* arg){
 
     ret = FSA_CloseFile(fsaHandle, logHandle);
     debug_printf("Close logfile returned -%X\n", -ret);
-    ret = FSA_Unmount(fsaHandle, "/vol/sdcard", 2);
+    ret = FSA_Unmount(fsaHandle, "/vol/sdcard", 0);
     debug_printf("Unmount SD -%X\n", -ret);
 
     debug_printf("Re-enabling Power Transitions\n");
