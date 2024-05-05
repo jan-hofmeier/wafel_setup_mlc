@@ -285,6 +285,11 @@ u32 setup_main(void* arg){
     update_error_state(ret, 2);
     log_printf(fsaHandle, logHandle, "Flush SLC: %X\n", ret);
 
+    ret = FSA_Remove(fsaHandle, "/vol/sdcard/wiiu/ios_plugins/wafel_setup_mlc.ipx");
+    debug_printf("Delete plugin: %X\n", ret);
+    log_printf(fsaHandle, logHandle, "Delete plugin: %X\n", ret);
+
+
     ret = FSA_CloseFile(fsaHandle, logHandle);
     debug_printf("Close logfile returned -%X\n", -ret);
     ret = FSA_Unmount(fsaHandle, "/vol/sdcard", 0);
