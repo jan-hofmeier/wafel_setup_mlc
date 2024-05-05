@@ -194,7 +194,7 @@ void fix_region(int fsaHandle, int logHandle){
 
     uint64_t coldbootTitle = *(vu64*)(0x050b817c);
 
-    debug_printf("Current coldboot title:    %08lx-%08lx",
+    debug_printf("Current coldboot title:    %08lx-%08lx\n",
             (uint32_t)(coldbootTitle >> 32), (uint32_t)(coldbootTitle & 0xFFFFFFFFU));
 
     if(coldbootTitle & 0xFFFFFFFFFFFFF0FF != 0005001010040000UL){
